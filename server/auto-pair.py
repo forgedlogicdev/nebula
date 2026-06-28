@@ -1,53 +1,51 @@
 #!/usr/bin/env python3
-"""Auto-accept Sunshine pairing PINs via -0 stdin/stdout."""
+"""Auto-accept Sunshine PIN. Only matches solo 4-digit lines (not timestamps)."""
 
-import subprocess
-import sys
-import os
-import re
-import time
+import subprocess, os, sys, re, time, select
 
-def main():
-    print("[auto-pair] Starting Sunshine with auto-pin mode...", flush=True)
-    
-    # Start Sunshine with -0 flag
-    proc = subprocess.Popen(
-        ["sunshine", "-0"],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.DEVNULL,
-        text=True,
-        bufsize=1,
-        env={**os.environ, "DISPLAY": ":99"}
-    )
-    
-    print("[auto-pair] Sunshine PID: " + str(proc.pid), flush=True)
-    print("[auto-pair] Waiting for pairing requests...", flush=True)
-    
-    # Read stdout line by line, looking for a 4-digit PIN
-    for line in proc.stdout:
-        line = line.strip()
-        if not line:
-            continue
-        
-        # PIN is a 4-digit number on its own line
-        match = re.match(r'^(\d{4})$', line)
-        if match:
-            pin = match.group(1)
-            print(f"[auto-pair] PIN detected: {pin}", flush=True)
-            
-            # Write PIN back to stdin to confirm
-            proc.stdin.write(pin + "\n")
-            proc.stdin.flush()
-            print(f"[auto-pair] Auto-accepted PIN: {pin}", flush=True)
-            print("[auto-pair] Pairing complete!", flush=True)
-            continue
-        
-        # Log non-PIN lines to stderr for debugging
-        if any(kw in line.lower() for kw in ["error", "fatal", "warning"]):
-            print(f"[sunshine] {line}", file=sys.stderr, flush=True)
+print("[auto-pair] Starting Sunshine -0...", flush=True)
 
-    print("[auto-pair] Sunshine exited", flush=True)
+proc = subprocess.Popen(
+    ["sunshine", "-0"],
+    stdin=subprocess.PIPE,
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
+    text=True,
+    bufsize=0,
+    env={**os.environ, "DISPLAY": ":99"}
+)
 
-if __name__ == "__main__":
-    main()
+print(f"[auto-pair] PID={proc.pid}, waiting for pairing...", flush=True)
+
+buf = ""
+
+while True:
+    r, _, _ = select.select([proc.stdout], [], [], 2.0)
+    if r:
+        try:
+            chunk = proc.stdout.read(1)
+            if not chunk:
+                break
+            buf += chunk
+            while "\n" in buf:
+                line, buf = buf.split("\n", 1)
+                line = line.strip()
+                if not line:
+                    continue
+                # Only match a line that is EXACTLY a 4-digit PIN (nothing else)
+                m = re.match(r'^(\d{4})$', line)
+                if m:
+                    pin = m.group(1)
+                    t0 = time.time()
+                    print(f"[PIN] {pin} - auto-accepting...", flush=True)
+                    proc.stdin.write(pin + "\n")
+                    proc.stdin.flush()
+                    elapsed = time.time() - t0
+                    print(f"[DONE] Pairing accepted in {elapsed:.2f}s!", flush=True)
+        except:
+            break
+    if proc.poll() is not None:
+        print(f"[auto-pair] Sunshine exited (code={proc.returncode})", flush=True)
+        break
+
+print("[auto-pair] Stopped", flush=True)
