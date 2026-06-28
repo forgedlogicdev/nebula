@@ -1,0 +1,16 @@
+plugins {
+    id "com.android.application"
+}
+android {
+    namespace "com.nebula.launcher"
+    compileSdk 26
+    defaultConfig {
+        applicationId "com.nebula.launcher"
+        minSdk 26
+        targetSdk 26
+        versionCode 1
+        versionName "0.1.0"
+    }
+    buildFeatures { viewBinding false }
+}
+dependencies {}

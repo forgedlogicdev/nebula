@@ -1,0 +1,19 @@
+# Android
+launcher/app/build/
+launcher/.gradle/
+*.apk
+*.dex
+local.properties
+*.iml
+.idea/
+
+# Python
+__pycache__/
+*.pyc
+
+# Logs/state
+*.log
+*.state.json
+
+# Gradle jar
+gradle-wrapper.jar
