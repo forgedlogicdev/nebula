@@ -1,15 +1,14 @@
 #!/bin/bash
-# One-time pairing helper for headless Sunshine
-# After running this, open Moonlight on the tablet
-# When the PIN appears, submit it here
-
-SUNSHINE_URL="https://localhost:47990"
-echo "=== NEBULA AUTO-PAIR ==="
+# One-time pairing: open Moonlight, enter PIN here
+# After pairing, this step is never needed again
+echo "=== SUNSHINE PAIRING HELPER ==="
+echo "Server IP: 10.0.0.108"
+echo "Web UI:    https://10.0.0.108:47990"
+echo "Login:     nebula / nebula123"
+echo ""
 echo "1. Open Moonlight on your tablet"
-echo "2. Tap the HP Mini (10.0.0.108)"
-echo "3. A PIN will appear on the tablet"
-echo "4. Paste PIN below:"
-read -p "PIN: " pin
-echo "Submitting PIN to Sunshine..."
-echo "Open this URL on any device: ${SUNSHINE_URL}/pin?pin=${pin}"
-echo "Or from terminal: curl -sk -u nebula:nebula123 -X POST ${SUNSHINE_URL}/api/pin -d {"pin":"${pin}"}"
+echo "2. Tap +, Add PC Manually, enter 10.0.0.108"
+echo "3. A PIN appears on the tablet"
+echo "4. Open https://10.0.0.108:47990 in tablet browser"
+echo "5. Login and enter the PIN"
+echo "6. Done permanently - Moonlight will auto-connect next time"
